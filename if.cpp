@@ -10,8 +10,8 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <math.h>
 using namespace std;
-
 
 //Voltage jump caused by outside delta function spikes
 double f = 0.1;
@@ -48,21 +48,27 @@ double current_time;
 // double Vr = 0.0; double Vt = 1.0;
 
 int main(){
+  srand (time(NULL));
+  // srand (1);
   //Initialize voltages in voltage
   ofstream Initial_Voltage;
-  Initial_Voltage.open ("Initial_Voltage.txt");
+  Initial_Voltage.open ("Poisson_Initial_Voltage.txt");
   for (int i=0;i<N;i++){
       voltage[i] = ((double) rand() / (RAND_MAX)); //Value between 0 and 1
       Initial_Voltage << voltage[i] << endl;
   }
   Initial_Voltage.close();
-
+  ofstream Spikes_Observation;
+  Spikes_Observation.open ("Poisson_Spikes_Observation.txt");
   current_time = t0;
   while(current_time < tF){
     //TODO: Poisson-train external drive
     //construct N-1 array
     long double next_spike_time[N];
-
+    for (int i=0;i<N;i++) {
+        double tem = ((double) rand() / (RAND_MAX));
+        next_spike_time[i] = log (tem) * (-1 * (1/v));
+    }
     //each N_i is a randomly generated time (between 0 and inf)
 
     int smallest_index = -1;
@@ -84,9 +90,13 @@ int main(){
     voltage[smallest_index] += f;
 
     if (voltage[smallest_index] > 1){
+      spike_count++;
+      current_time += smallest_value;
+      spike_time[spike_count] = current_time;
       bool lock[10000]; // Lock the ones that have already spiked;
       for (int i=0;i<N;i++) lock[i] = false;
       vector<int> waitlist; // This contains neurons that spike at the same time and haven't been dealt with.
+      waitlist.push_back(smallest_index);
       while (!waitlist.empty()){
         int crt = waitlist.back();
         waitlist.pop_back();
@@ -104,7 +114,6 @@ int main(){
           }
         }
       }
-      spike_count++;
       //Loop through
       for (int i = 0; i < N; i++){
         if (lock[i]){
@@ -112,16 +121,24 @@ int main(){
         }
       }
     }
-
     //update whole system -> if fire -> go into "fire" loop
     //give a new random variable and add N_i to current_time
     //repeat
-
-    //next_spike_time[smallest_index] =
-    current_time += smallest_value;
-
+    double tem = ((double) rand() / (RAND_MAX));
+    next_spike_time[smallest_index] = log (tem) * (-1 * (1/v));;
   }
-
-
+  cout << spike_count << " " << spikes << endl;
+  for (int i=1;i<=spike_count;i++)
+      for (int j=0;j<N;j++) {
+          Spikes_Observation << observation[i][j] << endl;
+      }
+  Spikes_Observation.close();
+  ofstream Spike_Count;
+  Spike_Count.open ("Poisson_Spike_Count.txt");
+  Spike_Count << spike_count;
+  Spike_Count.close();
+  ofstream Spikes;
+  Spikes.open ("Poisson_Spikes.txt");
+  Spikes << spikes;Spikes.close();
   return 0;
 }
