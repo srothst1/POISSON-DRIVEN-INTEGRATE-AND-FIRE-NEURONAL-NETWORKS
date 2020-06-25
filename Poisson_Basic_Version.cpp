@@ -68,10 +68,10 @@ int main(){
     Initial_Voltage.close();
     ofstream Spikes_Observation;
     Spikes_Observation.open ("Poisson_Spikes_Observation.txt");
-    
-    priority_queue< pair<double,int>, vector<pair<double,int>>,
-        greater<pair<double,int>> > pq;
-    
+
+    priority_queue< pair<double,int>, vector<pair<double,int> >,
+        greater<pair<double,int> > > pq;
+
     current_time = t0;
     for (int i=0;i<N;i++) {
         double tem = ((double) rand() / (RAND_MAX));
@@ -82,15 +82,15 @@ int main(){
     while(current_time < tF){
         //construct N-1 array
         // long double next_spike_time[N];
-        
+
         //each N_i is a randomly generated time (between 0 and inf)
-        
+
         /*
         int smallest_index = -1;
         long double smallest_value = 100;
         //find "closest time" -> smallest N_i
         //Determine the next spike time
-        
+
         for (int i = 0; i < N; i++){
             if (next_spike_time[i] < smallest_value){
                 smallest_index = i;
@@ -142,11 +142,11 @@ int main(){
         double tem = ((double) rand() / (RAND_MAX));
         tem = log (tem) * (-1 * (1/v));
         pq.push(make_pair(top.first + tem, top.second));
-        
+
         //update whole system -> if fire -> go into "fire" loop
         //give a new random variable and add N_i to current_time
         //repeat
-        
+
         // double tem = ((double) rand() / (RAND_MAX));
         // next_spike_time[smallest_index] = log (tem) * (-1 * (1/v));
     }
