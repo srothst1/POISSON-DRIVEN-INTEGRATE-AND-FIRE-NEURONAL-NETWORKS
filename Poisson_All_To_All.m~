@@ -16,5 +16,5 @@ end
 xlim([0 10]);
 ylim([1 100]);
 title('Histograms of firing times')
-xlabel('Time') 
-ylabel('neuron label') 
+xlabel('-2\pi < x < 2\pi') 
+ylabel('Sine and Cosine Values') 
