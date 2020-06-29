@@ -1,10 +1,13 @@
-%% Neurons Spiking Visual
+%% Neurons Spiking Visual 
 close all;clear all;
 load('Poisson_Spikes_Observation.txt');
 load('Poisson_Spike_Time.txt');
 load('Poisson_Spike_Count.txt');
 load('Poisson_Neurons.txt');
 load('Poisson_Spikes.txt');
+load('Poisson_Edges_num.txt');
+load('Poisson_Edges.txt');
+load('Poisson_Individual_Spike_Count.txt');
 for i = 1 : Poisson_Spike_Count
     for j = 1 : Poisson_Neurons
         y(i,j) = Poisson_Spikes_Observation(Poisson_Neurons*(i-1)+j);
@@ -17,7 +20,7 @@ end
 xlim([0 10]);
 ylim([1 Poisson_Neurons]);
 
-%% All-To-All Neuron Gain Curve Fitting
+%% All-To-All Neuron Gain Curve Fitting 
 close all;clear all;
 load('Poisson_Spikes_Observation.txt');
 load('Poisson_Spike_Time.txt');
@@ -26,7 +29,7 @@ load('Poisson_Neurons.txt');
 load('Poisson_Spikes.txt');
 Avg = zeros(1,51);
 for i = 1: 51
-    for j = 1:50
+    for j = 1:100
         Avg(i) = Avg(i)+Poisson_Spikes((j-1)*51+i);
     end
     Avg(i) = Avg(i)/(j*Poisson_Neurons*10);

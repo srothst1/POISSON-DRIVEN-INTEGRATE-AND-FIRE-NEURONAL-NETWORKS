@@ -1,8 +1,8 @@
 //
 //  main.cpp
-//  Poisson_Driven
+//  Poisson_Theory_Reconstruction(Small f, (1,1/2), treat it as constant inputs for each neuron)
 //
-//  Created by Sam and Alex on 6/23/20.
+//  Created by Sam and Alex on 6/29/20.
 //  Copyright © 2020 Haoyi Xuan. All rights reserved.
 //
 
@@ -21,15 +21,15 @@
 using namespace std;
 
 //Voltage jump caused by outside delta function spikes
+int a[10005][10005];
+int b[1005][10005];
 double f = 0.001;
-//Velocity of spikes
-double v = 1.2 / f;
 //Coupling strength
 double S = 2;
 //Number of neurons
-int N = 100;
+int N = 1000;
 //Firing at spike time?
-bool observation[100000][10000];
+//bool observation[100000][10000];
 //Spike time
 double spike_time[100000];
 //Spike count at a given time
@@ -46,6 +46,11 @@ double t0 = 0;
 double tF = 10;
 //Current time
 double current_time;
+// Image In
+double arr[10005];
+// \mu value
+double v[10000];
+
 
 // int N = 1000; double sn = 0.0001; double t0 = 0.0; double tf = 10; double tau = 1;
 // int A[1005][1005]; double fp[1000000]; double v[1000000]; double t;
@@ -57,6 +62,92 @@ double current_time;
 int main(){
     srand (time(NULL));
     // srand (1);
+    //Velocity of spikes
+    
+    string line; ifstream img("/Users/haoyixuan/Desktop/Poisson_Driven/Im.txt");
+    if (img.is_open()){ // if there is an input file
+    // cout << "Opened a file -> generating input based on image" << endl;
+        int indx = 0;
+        while (getline (img,line)){
+            //IM.push_back(atof(line.c_str()));
+            arr[indx] = atof(line.c_str());
+            indx++;
+        }
+        img.close();
+    }
+    
+    // Initialize Matrix B with 1/1000 chance of connection
+    for (int i=0;i<N;i++)
+        for (int j=0;j<10*N;j++){
+            int rnd = rand() % 1000 + 1;
+            if (rnd == 1000) b[i][j] = 1;
+            else b[i][j]=0;
+        }
+    int Input_output_from[100000], Input_output_to[100000];
+    int Input_edge = 0;
+    for (int i=0;i<N;i++){
+        for (int j=0;j<10*N;j++) {
+            if (b[i][j] == 1) {
+                Input_edge++;
+                Input_output_from[Input_edge] = i+1;
+                Input_output_to[Input_edge] = j+1;
+            }
+        }
+    }
+    ofstream Input_Edges;
+    Input_Edges.open ("Poisson_Input_Edges.txt");
+    for (int i=1;i<=Input_edge;i++) {
+        Input_Edges << Input_output_from[i] << " " << Input_output_to[i];
+        if (i != Input_edge) Input_Edges << endl;
+    }
+    Input_Edges.close();
+    ofstream Input_Edges_num;
+    Input_Edges_num.open ("Poisson_Input_Edges_num.txt");
+    Input_Edges_num << Input_edge;
+    Input_Edges_num.close();
+    
+    for (int i=0;i<N;i++){
+        for (int j=0;j<10*N;j++){
+            v[i] += (b[i][j] * arr[j]);
+        }
+        v[i] = v[i] / 10;
+        v[i] = v[i] / f;
+        // fp[i] *= (b*0.05); // Big For Loop
+    }
+    
+    // Initialize Matrix A with 99% 0 and 1% 1;
+    for (int i=0;i<N;i++)
+        for (int j=0;j<N;j++){
+            if (i == j) a[i][j] = 0;
+            else {
+                int rnd = rand() % 100 + 1;
+                if (rnd == 100) a[i][j] = 1;
+                else a[i][j]=0;
+            }
+        }
+    int output_from[100000], output_to[100000];
+    int edge = 0;
+    for (int i=0;i<N;i++){
+        for (int j=0;j<N;j++) {
+            if (a[i][j] == 1) {
+                edge++;
+                output_from[edge] = i+1;
+                output_to[edge] = j+1;
+            }
+        }
+    }
+    ofstream Edges;
+    Edges.open ("Poisson_Edges.txt");
+    for (int i=1;i<=edge;i++) {
+        Edges << output_from[i] << " " << output_to[i];
+        if (i != edge) Edges << endl;
+    }
+    Edges.close();
+    ofstream Edges_num;
+    Edges_num.open ("Poisson_Edges_num.txt");
+    Edges_num << edge;
+    Edges_num.close();
+    
     //Initialize voltages in voltage
     ofstream Initial_Voltage;
     Initial_Voltage.open ("Poisson_Initial_Voltage.txt");
@@ -65,8 +156,10 @@ int main(){
         Initial_Voltage << voltage[i] << endl;
     }
     Initial_Voltage.close();
-    ofstream Spikes_Observation;
-    Spikes_Observation.open ("Poisson_Spikes_Observation.txt");
+    //ofstream Spikes_Observation;
+    //Spikes_Observation.open ("Poisson_Spikes_Observation.txt");
+    ofstream Individual_Spike_Count;
+    Individual_Spike_Count.open("Poisson_Individual_Spike_Count.txt");
     
     priority_queue< pair<double,int>, vector<pair<double,int>>,
         greater<pair<double,int>> > pq;
@@ -75,7 +168,7 @@ int main(){
     for (int i=0;i<N;i++) {
         double tem = ((double) rand() / (RAND_MAX));
         // next_spike_time[i] = log (tem) * (-1 * (1/v));
-        tem = log (tem) * (-1 * (1/v));
+        tem = log (tem) * (-1 * (1/v[i]));
         pq.push(make_pair(tem, i));
     }
     while(current_time < tF){
@@ -122,7 +215,7 @@ int main(){
                 lock[crt] = true;
                 voltage[crt] = 0;
                 for (int i=0;i<N;i++){
-                    if (i != crt && !lock[i]) {
+                    if (i != crt && a[crt][i] && !lock[i]) {
                         voltage[i] = voltage[i] + ((double) S/ (double) N);
                         if (voltage[i] >= 1) {
                             waitlist.push_back(i);
@@ -132,14 +225,16 @@ int main(){
                 }
             }
             //Loop through
+            /*
             for (int i = 0; i < N; i++){
                 if (lock[i]){
                     observation[spike_count][i] = true;
                 }
             }
+            */
         }
         double tem = ((double) rand() / (RAND_MAX));
-        tem = log (tem) * (-1 * (1/v));
+        tem = log (tem) * (-1 * (1/v[top.second]));
         pq.push(make_pair(top.first + tem, top.second));
         
         //update whole system -> if fire -> go into "fire" loop
@@ -150,11 +245,17 @@ int main(){
         // next_spike_time[smallest_index] = log (tem) * (-1 * (1/v));
     }
     cout << spike_count << " " << spikes << endl;
+    /*
     for (int i=1;i<=spike_count;i++)
         for (int j=0;j<N;j++) {
             Spikes_Observation << observation[i][j] << endl;
         }
-    Spikes_Observation.close();
+    */
+    for (int j=0;j<N;j++) {
+        Individual_Spike_Count << individual_spike_count[j] << endl;
+    }
+    Individual_Spike_Count.close();
+    // Spikes_Observation.close();
     ofstream Spike_Count;
     Spike_Count.open ("Poisson_Spike_Count.txt");
     Spike_Count << spike_count;

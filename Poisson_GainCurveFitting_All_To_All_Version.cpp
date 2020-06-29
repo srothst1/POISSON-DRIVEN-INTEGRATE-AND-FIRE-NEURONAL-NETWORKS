@@ -41,7 +41,7 @@ double voltage[10000];
 //Starting time
 double t0 = 0;
 //Ending time
-double tF = 10;
+double tF = 11;
 //Current time
 double current_time;
 
@@ -71,7 +71,7 @@ int main(){
     Spike_Count.open ("Poisson_Spike_Count.txt");
     Spikes.open ("Poisson_Spikes.txt");
     Spike_Time.open ("Poisson_Spike_Time.txt");
-    for (int BIG_LOOP=0; BIG_LOOP<50;BIG_LOOP++){
+    for (int BIG_LOOP=0; BIG_LOOP<100;BIG_LOOP++){
     for (int loop_fv=0;loop_fv<=50;loop_fv++){
         //Voltage jump caused by outside delta function spikes
         double f = 0.01;
@@ -123,7 +123,7 @@ int main(){
             voltage[top.second] += f;
             current_time = top.first;
             if (voltage[top.second] > 1){
-                spike_count++;
+                if (current_time>1) spike_count++;
                 spike_time[spike_count] = current_time;
                 bool lock[10000]; // Lock the ones that have already spiked;
                 for (int i=0;i<N;i++) lock[i] = false;
@@ -132,7 +132,7 @@ int main(){
                 while (!waitlist.empty()){
                     int crt = waitlist.back();
                     waitlist.pop_back();
-                    spikes++;
+                    if (current_time>1) spikes++;
                     individual_spike_count[crt]++;
                     lock[crt] = true;
                     voltage[crt] = 0;
