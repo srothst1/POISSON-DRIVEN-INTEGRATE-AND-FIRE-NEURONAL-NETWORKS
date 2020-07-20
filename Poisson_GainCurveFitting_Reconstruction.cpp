@@ -28,10 +28,6 @@ double f = 0.02;
 double S = 2;
 //Number of neurons
 int N = 1000;
-//Firing at spike time?
-//bool observation[100000][10005];
-//Spike time
-//double spike_time[100000];
 //Spike count at a given time
 int spike_count = 0;
 //Individual spike count
@@ -46,25 +42,18 @@ double t0 = 0;
 double tF = 10;
 //Current time
 double current_time;
-// Image In
+//Image In
 double arr[10005];
-// \mu value
+//mu value
 double v[10005];
 
-
-// int N = 1000; double sn = 0.0001; double t0 = 0.0; double tf = 10; double tau = 1;
-// int A[1005][1005]; double fp[1000000]; double v[1000000]; double t;
-// double observation[10000][10000]; bool spike[100000][100000]; int j; int spike_cnt;
-// int spikes; double tsp; int array_sparsity = 10; double alpha = 6.50;
-// int output_from[10000], output_to[10000]; int edge = 0; int key_neuron = 0;
-// double Vr = 0.0; double Vt = 1.0;
 
 int main(){
     srand (time(NULL));
     // srand (1);
     //Velocity of spikes
-    
-    string line; ifstream img("/Users/haoyixuan/Desktop/Poisson_Driven/Im.txt");
+
+    string line; ifstream img("/Users/samuelrothstein/Desktop/Poisson_Driven/Im.txt");
     if (img.is_open()){ // if there is an input file
     // cout << "Opened a file -> generating input based on image" << endl;
         int indx = 0;
@@ -75,7 +64,7 @@ int main(){
         }
         img.close();
     }
-    
+
     // Initialize Matrix B with 1/1000 chance of connection
     for (int i=0;i<N;i++)
         for (int j=0;j<10*N;j++){
@@ -109,7 +98,7 @@ int main(){
     Input_Edges_num.open ("Poisson_Input_Edges_num.txt");
     Input_Edges_num << Input_edge;
     Input_Edges_num.close();
-    
+
     // Initialize Matrix A with 99% 0 and 1% 1;
     for (int i=0;i<N;i++)
         for (int j=0;j<N;j++){
@@ -142,7 +131,7 @@ int main(){
     Edges_num.open ("Poisson_Edges_num.txt");
     Edges_num << edge;
     Edges_num.close();
-    
+
     //Initialize voltages in voltage
     ofstream Initial_Voltage;
     Initial_Voltage.open ("Poisson_Initial_Voltage.txt");
@@ -155,15 +144,15 @@ int main(){
     //Spikes_Observation.open ("Poisson_Spikes_Observation.txt");
     ofstream Individual_Spike_Count;
     Individual_Spike_Count.open("Poisson_Individual_Spike_Count.txt");
-    
-    
+
+
     for (int BIGLOOP=0;BIGLOOP<=10;BIGLOOP++){
-        
+
         for (int i=0;i<N;i++) voltage[i] = initial_voltage[i];
         for (int i=0;i<N;i++) v[i] = 0;
-        priority_queue< pair<double,int>, vector<pair<double,int>>,
-            greater<pair<double,int>> > pq;
-        
+        priority_queue< pair<double,int>, vector<pair<double,int> >,
+            greater<pair<double,int> > > pq;
+
         for (int i=0;i<N;i++){
             for (int j=0;j<10*N;j++){
                 v[i] += (b[i][j] * arr[j]);
@@ -172,7 +161,7 @@ int main(){
             v[i] = v[i] / f;
             v[i] = v[i] * (1+0.05*BIGLOOP); // Big For Loop
         }
-        
+
         current_time = t0;
         for (int i=0;i<N;i++) {
             double tem = ((double) rand() / (RAND_MAX));
@@ -181,27 +170,6 @@ int main(){
             pq.push(make_pair(tem, i));
         }
         while(current_time < tF){
-            //construct N-1 array
-            // long double next_spike_time[N];
-            
-            //each N_i is a randomly generated time (between 0 and inf)
-            
-            /*
-            int smallest_index = -1;
-            long double smallest_value = 100;
-            //find "closest time" -> smallest N_i
-            //Determine the next spike time
-            
-            for (int i = 0; i < N; i++){
-                if (next_spike_time[i] < smallest_value){
-                    smallest_index = i;
-                    smallest_value = next_spike_time[i];
-                }
-            }
-            current_time += smallest_value;
-            voltage[smallest_index] += f;
-            */
-            //deduct the smallest value from all other N_k
             pair<double, int> top = pq.top();
             pq.pop();
             for (int i = 0; i < N; i++){
@@ -233,35 +201,14 @@ int main(){
                         }
                     }
                 }
-                //Loop through
-                /*
-                for (int i = 0; i < N; i++){
-                    if (lock[i]){
-                        observation[spike_count][i] = true;
-                    }
-                }
-                */
             }
             double tem = ((double) rand() / (RAND_MAX));
             tem = log (tem) * (-1 * (1/v[top.second]));
             pq.push(make_pair(top.first + tem, top.second));
-            
-            //update whole system -> if fire -> go into "fire" loop
-            //give a new random variable and add N_i to current_time
-            //repeat
-            
-            // double tem = ((double) rand() / (RAND_MAX));
-            // next_spike_time[smallest_index] = log (tem) * (-1 * (1/v));
         }
         cout << spike_count << " " << spikes << endl;
         spike_count = 0;
         spikes = 0;
-        /*
-        for (int i=1;i<=spike_count;i++)
-            for (int j=0;j<N;j++) {
-                Spikes_Observation << observation[i][j] << endl;
-            }
-        */
         for (int j=0;j<N;j++) {
             Individual_Spike_Count << individual_spike_count[j] << endl;
             individual_spike_count[j] = 0;
@@ -283,9 +230,6 @@ int main(){
     Neurons.close();
     ofstream Spike_Time;
     Spike_Time.open ("Poisson_Spike_Time.txt");
-    //for (int i=1;i<=spike_count;i++){
-    //    Spike_Time << spike_time[i] << endl;
-    //}
     Spike_Time.close();
     return 0;
 }

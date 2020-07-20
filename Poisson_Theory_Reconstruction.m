@@ -22,7 +22,7 @@ for i = 1:S(1,2)
         k=k+1;
     end
 end
-save('/Users/haoyixuan/Desktop/Poisson_Driven/Im.txt', 'C', '-ascii');
+save('/Users/samuelrothstein/Desktop/Poisson_Driven/Im.txt', 'C', '-ascii');
 
 %% Fourier Basis
 for i = 1 : 100
@@ -86,6 +86,15 @@ R = b * Cross_D_inv;
 R = 0.1 * R;
 Poisson_Individual_Spike_Count = Poisson_Individual_Spike_Count / 10;
 RHS = Poisson_Individual_Spike_Count + (1/2) * ones(Poisson_Neurons,1) - (1/Poisson_Neurons) * (a * Poisson_Individual_Spike_Count);
+
+
+%TODO: add noise level
+r1 = rand(1000,1); 
+r1 = r1 .* 1; %TODO: update noise here
+r1 = ones(1000,1) + r1;
+RHS = RHS .* r1;
+
+
 P_hat = zeros(10000,1);
 cnt = 0;
 while cnt < 250
@@ -110,6 +119,6 @@ for i = 1 : 100
         image_display(i,j) = image_theory(100*(i-1)+j);
     end
 end
-imshow(image_display,[0 255]);
-Image_error = norm(image_display-A,'fro')/norm(A,'fro');
+%imshow(image_display,[0 255]);
+Image_error = norm(image_display-A,'fro')/norm(A,'fro')
 

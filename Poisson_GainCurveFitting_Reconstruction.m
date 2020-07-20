@@ -22,7 +22,7 @@ for i = 1:S(1,2)
         k=k+1;
     end
 end
-save('/Users/haoyixuan/Desktop/Poisson_Driven/Im.txt', 'C', '-ascii');
+save('/Users/samuelrothstein/Desktop/Poisson_Driven/Im.txt', 'C', '-ascii');
 
 %% Fourier Basis
 for i = 1 : 100
@@ -85,7 +85,7 @@ for i = 1 : Poisson_Input_Edges_num
 end
 RHS = (1/10) * b * C;
 % bias = zeros(21,1000);
-% slope = zeros(21,1000);
+slope = zeros(21,1000);
 
 %for loop3 = 1 : 21 % Big Loop Only 
 %for i = 1 : Poisson_Neurons
@@ -137,7 +137,7 @@ for i = 1:Rec_S(1,2)
         k=k+1;
     end
 end
-save('/Users/haoyixuan/Desktop/Poisson_Driven/Rec_Im.txt', 'Rec_C', '-ascii');
+save('/Users/samuelrothstein/Desktop/Poisson_Driven/Im.txt', 'Rec_C', '-ascii');
 
 %% Reconstuction of a new picture (Base on fbp = slope * mu + bias)
 
@@ -145,7 +145,7 @@ load('Poisson_Input_Edges.txt');
 load('Poisson_Input_Edges_num.txt');
 load('Poisson_Edges.txt');
 load('Poisson_Edges_num.txt');
-load('Rec_Individual_Spike_Count.txt');
+load('Poisson_Individual_Spike_Count.txt');
 load('Poisson_Neurons.txt');
 
 % Reconstruct Matrix A
@@ -167,7 +167,7 @@ end
 for i = 1 : Poisson_Input_Edges_num
     b(Poisson_Input_Edges(i,1),Poisson_Input_Edges(i,2)) = 1;
 end
-Rec_Individual_Spike_Count = Rec_Individual_Spike_Count / 10;
+Poisson_Individual_Spike_Count = Poisson_Individual_Spike_Count / 10;
 
 % error = zeros(21,4);
 % for loop1 = 1:21 % Big Loop Only
@@ -180,8 +180,14 @@ RHS = zeros(Poisson_Neurons, 1);
 for i = 1 : Poisson_Neurons
     % Tem_Rec_Individual_spike_cnt(i) = Rec_Individual_Spike_Count(i) * (1 + noise_level * randn);
     % RHS(i) = Tem_Rec_Individual_spike_cnt(i) * slope(loop1,i) + bias(loop1,i);
-    RHS(i) = Rec_Individual_Spike_Count(i) * slope(i) + bias(i);
+    RHS(i) = Poisson_Individual_Spike_Count(i) * slope(i) + bias(i);
 end
+
+r1 = rand(1000,1); 
+r1 = r1 .* 1; %TODO: update noise here
+r1 = ones(1000,1) + r1;
+RHS = RHS .* r1;
+
 P_hat = zeros(10000,1);
 cnt = 0;
 while cnt < 250
@@ -208,8 +214,13 @@ for i = 1 : 100
         image_display(i,j) = image_theory(100*(i-1)+j);
     end
 end
-imshow(image_display,[0 255]);
-Image_error = norm(image_display-Rec_A,'fro')/norm(Rec_A,'fro');
+%imshow(image_display,[0 255]);
+Image_error = norm(image_display-A,'fro')/norm(A,'fro')
+
+
+%Image_error = norm(image_display-Rec_A,'fro')/norm(Rec_A,'fro');
+
+
 % error(loop1,loop2) = Image_error; % Big Loop Only
 % end % Big Loop Only
 % end % Big Loop Only
